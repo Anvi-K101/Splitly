@@ -87,12 +87,47 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .user-badge:hover {
+            background: #e9ecef;
+        }
+        
+        .main-wrapper {
+            display: flex;
+            gap: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .ad-space {
+            width: 160px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+        
+        .ad-placeholder {
+            width: 100%;
+            height: 600px;
+            background: #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
         }
         
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
+            flex: 1;
+            min-width: 0;
         }
         
         .group-selector {
@@ -140,6 +175,11 @@
             background: #f8f9fa;
             color: #000;
             border: 1px solid #dee2e6;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
         }
         
         .grid {
@@ -448,6 +488,29 @@
             max-width: 500px;
             width: 100%;
             box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            position: relative;
+        }
+        
+        .modal-close {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: #f8f9fa;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            font-size: 1.25rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            transition: background 0.2s;
+        }
+        
+        .modal-close:hover {
+            background: #e9ecef;
         }
         
         .modal-icon {
@@ -493,12 +556,27 @@
             cursor: pointer;
         }
         
+        .modal-btn:hover {
+            background: #333;
+        }
+        
         .qr-container {
             text-align: center;
             padding: 1.5rem;
             background: #f8f9fa;
             border-radius: 12px;
             margin-bottom: 1.5rem;
+        }
+        
+        #qrCode {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #qrCode img {
+            max-width: 100%;
+            height: auto;
         }
         
         .toast {
@@ -552,12 +630,14 @@
         
         @media (max-width: 1024px) {
             .grid { grid-template-columns: 1fr; }
+            .ad-space { display: none; }
         }
         
         @media (max-width: 768px) {
             .header { padding: 1rem; flex-wrap: wrap; }
             .header-right { width: 100%; justify-content: space-between; margin-top: 0.5rem; }
-            .container { padding: 1rem; }
+            .main-wrapper { flex-direction: column; padding: 1rem; }
+            .container { padding: 0; }
             .group-selector { flex-direction: column; }
             .card { padding: 1.5rem; }
             .summary-grid { grid-template-columns: 1fr; }
@@ -568,30 +648,40 @@
     <div class="modal-overlay" id="welcomeModal">
         <div class="modal">
             <div class="modal-icon">👋</div>
-            <h1 class="modal-title">Welcome to Splitly</h1>
-            <p class="modal-subtitle">Smart expense splitting made simple</p>
-            <input type="text" id="userName" class="modal-input" placeholder="Enter your name" onkeypress="if(event.key==='Enter') saveUserName()">
-            <button class="modal-btn" onclick="saveUserName()">Get Started</button>
+            <h1 class="modal-title" id="onboardingTitle">Welcome to Splitly</h1>
+            <p class="modal-subtitle" id="onboardingSubtitle">Smart expense splitting made simple</p>
+            <div id="onboardingStep1">
+                <input type="text" id="userName" class="modal-input" placeholder="Enter your name">
+                <button type="button" class="modal-btn" id="nameNextBtn">Next</button>
+            </div>
+            <div id="onboardingStep2" class="hidden">
+                <input type="text" id="tripName" class="modal-input" placeholder="e.g., Weekend Trip, Office Lunch">
+                <button type="button" class="modal-btn" id="tripStartBtn">Get Started</button>
+            </div>
         </div>
     </div>
 
     <div class="modal-overlay hidden" id="qrModal">
         <div class="modal">
+            <button class="modal-close" id="closeQR">×</button>
             <div class="modal-icon">📱</div>
             <h2 class="modal-title">Share via QR Code</h2>
             <p class="modal-subtitle">Scan to view the split summary</p>
-            <div class="qr-container" id="qrCode"></div>
-            <button class="modal-btn" onclick="closeQRModal()">Close</button>
+            <div class="qr-container">
+                <div id="qrCode"></div>
+            </div>
+            <button type="button" class="modal-btn" id="closeQRBtn">Close</button>
         </div>
     </div>
 
     <div class="modal-overlay hidden" id="groupModal">
         <div class="modal">
+            <button class="modal-close" id="closeGroup">×</button>
             <div class="modal-icon">👥</div>
             <h2 class="modal-title">Create New Group</h2>
             <p class="modal-subtitle">Enter a name for your expense group</p>
-            <input type="text" id="groupName" class="modal-input" placeholder="e.g., Girls Trip, Office Lunch" onkeypress="if(event.key==='Enter') createGroup()">
-            <button class="modal-btn" onclick="createGroup()">Create Group</button>
+            <input type="text" id="groupName" class="modal-input" placeholder="e.g., Girls Trip, Office Lunch">
+            <button type="button" class="modal-btn" id="createGroupBtn">Create Group</button>
         </div>
     </div>
 
@@ -602,184 +692,196 @@
                 Splitly
             </div>
             <div class="header-right">
-                <button class="nav-btn active" id="expensesTab" onclick="showTab('expenses')">
+                <button class="nav-btn active" id="expensesTab">
                     <span>💳</span> Expenses
                 </button>
-                <button class="nav-btn" id="checklistTab" onclick="showTab('checklist')">
+                <button class="nav-btn" id="checklistTab">
                     <span>✓</span> Checklist
                 </button>
-                <div class="user-badge">
+                <div class="user-badge" id="userBadge">
                     <span>👤</span>
                     <span id="displayUserName"></span>
                 </div>
             </div>
         </header>
 
-        <div class="container">
-            <div id="expensesView">
-                <div class="group-selector">
-                    <select class="group-select" id="groupSelect" onchange="switchGroup()">
-                        <option value="default">Default Group</option>
-                    </select>
-                    <button class="btn" onclick="showGroupModal()">
-                        <span>➕</span> New Group
-                    </button>
-                    <select class="currency-select" id="currencySelect" onchange="changeCurrency()">
-                        <option value="USD">💱 USD</option>
-                        <option value="EUR">💱 EUR</option>
-                        <option value="GBP">💱 GBP</option>
-                        <option value="AUD">💱 AUD</option>
-                        <option value="CAD">💱 CAD</option>
-                        <option value="JPY">💱 JPY</option>
-                        <option value="INR">💱 INR</option>
-                        <option value="CNY">💱 CNY</option>
-                        <option value="CHF">💱 CHF</option>
-                        <option value="MXN">💱 MXN</option>
-                        <option value="BRL">💱 BRL</option>
-                        <option value="SGD">💱 SGD</option>
-                    </select>
-                </div>
-
-                <div class="grid">
-                    <div class="participants-expense-column">
-                        <div class="card">
-                            <h2 class="card-title"><span>👥</span> Participants</h2>
-                            <div class="form-group">
-                                <label>Add Person</label>
-                                <input type="text" id="personName" placeholder="Enter name" onkeypress="if(event.key==='Enter') addPerson()">
-                            </div>
-                            <button class="btn" style="width: 100%;" onclick="addPerson()">
-                                <span>➕</span> Add Person
-                            </button>
-                            <div id="peopleList" class="people-list"></div>
-                        </div>
-
-                        <div class="card">
-                            <h2 class="card-title"><span>💳</span> Add Expense</h2>
-                            <div class="form-group">
-                                <label>Description</label>
-                                <input type="text" id="expenseDesc" placeholder="e.g., Dinner">
-                            </div>
-                            <div class="form-group">
-                                <label>Amount</label>
-                                <input type="number" id="expenseAmount" placeholder="0.00" step="0.01">
-                            </div>
-                            <div class="form-group">
-                                <label>Who Paid?</label>
-                                <select id="whoPaid"></select>
-                            </div>
-                            <button class="btn" style="width: 100%;" onclick="addExpense()" id="expenseSubmitBtn">
-                                <span>➕</span> Add Expense
-                            </button>
-                        </div>
-
-                        <div class="card">
-                            <h2 class="card-title"><span>🧾</span> Expenses</h2>
-                            <div class="expense-list" id="expensesList">
-                                <div class="empty-state">
-                                    <div class="empty-icon">💰</div>
-                                    <div class="empty-text">No expenses added yet</div>
-                                </div>
-                            </div>
-                        </div>
+        <div class="main-wrapper">
+            <div class="ad-space">
+                <div class="ad-placeholder">Ad Space</div>
+                160x600
+            </div>
+            
+            <div class="container">
+                <div id="expensesView">
+                    <div class="group-selector">
+                        <select class="group-select" id="groupSelect"></select>
+                        <button class="btn" id="newGroupBtn">
+                            <span>➕</span> New Group
+                        </button>
+                        <button class="btn btn-danger" id="deleteGroupBtn">
+                            <span>🗑️</span> Delete Group
+                        </button>
+                        <select class="currency-select" id="currencySelect">
+                            <option value="USD">💱 USD</option>
+                            <option value="EUR">💱 EUR</option>
+                            <option value="GBP">💱 GBP</option>
+                            <option value="AUD">💱 AUD</option>
+                            <option value="CAD">💱 CAD</option>
+                            <option value="JPY">💱 JPY</option>
+                            <option value="INR">💱 INR</option>
+                            <option value="CNY">💱 CNY</option>
+                            <option value="CHF">💱 CHF</option>
+                            <option value="MXN">💱 MXN</option>
+                            <option value="BRL">💱 BRL</option>
+                            <option value="SGD">💱 SGD</option>
+                        </select>
                     </div>
 
-                    <div>
-                        <div class="card">
-                            <h2 class="card-title"><span>📊</span> Summary</h2>
-                            <div class="summary-grid">
-                                <div class="summary-card">
-                                    <div class="summary-label">Total Spent</div>
-                                    <div class="summary-value" id="totalSpent">$0.00</div>
+                    <div class="grid">
+                        <div class="participants-expense-column">
+                            <div class="card">
+                                <h2 class="card-title"><span>👥</span> Participants</h2>
+                                <div class="form-group">
+                                    <label>Add Person</label>
+                                    <input type="text" id="personName" placeholder="Enter name">
                                 </div>
-                                <div class="summary-card">
-                                    <div class="summary-label">Per Person</div>
-                                    <div class="summary-value" id="perPerson">$0.00</div>
-                                </div>
+                                <button class="btn" style="width: 100%;" id="addPersonBtn">
+                                    <span>➕</span> Add Person
+                                </button>
+                                <div id="peopleList" class="people-list"></div>
                             </div>
 
-                            <div class="chart-container">
-                                <div class="chart-title">Spending Overview</div>
-                                <div class="chart-bars" id="chartBars">
+                            <div class="card">
+                                <h2 class="card-title"><span>💳</span> Add Expense</h2>
+                                <div class="form-group">
+                                    <label>Description</label>
+                                    <input type="text" id="expenseDesc" placeholder="e.g., Dinner">
+                                </div>
+                                <div class="form-group">
+                                    <label>Amount</label>
+                                    <input type="number" id="expenseAmount" placeholder="0.00" step="0.01">
+                                </div>
+                                <div class="form-group">
+                                    <label>Who Paid?</label>
+                                    <select id="whoPaid"></select>
+                                </div>
+                                <button class="btn" style="width: 100%;" id="expenseSubmitBtn">
+                                    <span>➕</span> Add Expense
+                                </button>
+                            </div>
+
+                            <div class="card">
+                                <h2 class="card-title"><span>🧾</span> Expenses</h2>
+                                <div class="expense-list" id="expensesList">
                                     <div class="empty-state">
-                                        <div class="empty-icon">📊</div>
-                                        <div class="empty-text">Add expenses to see chart</div>
+                                        <div class="empty-icon">💰</div>
+                                        <div class="empty-text">No expenses added yet</div>
                                     </div>
                                 </div>
                             </div>
-
-                            <button class="btn" style="width: 100%;" onclick="calculateSplit()">
-                                <span>🔢</span> Calculate Split
-                            </button>
                         </div>
 
-                        <div class="card hidden" id="settlementsCard">
-                            <h2 class="card-title"><span>💸</span> Who Owes Whom</h2>
-                            <div class="settlement-list" id="settlementsList"></div>
-                        </div>
+                        <div>
+                            <div class="card">
+                                <h2 class="card-title"><span>📊</span> Summary</h2>
+                                <div class="summary-grid">
+                                    <div class="summary-card">
+                                        <div class="summary-label">Total Spent</div>
+                                        <div class="summary-value" id="totalSpent">$0.00</div>
+                                    </div>
+                                    <div class="summary-card">
+                                        <div class="summary-label">Per Person</div>
+                                        <div class="summary-value" id="perPerson">$0.00</div>
+                                    </div>
+                                </div>
 
-                        <div class="card hidden" id="shareCard">
-                            <h2 class="card-title"><span>🔗</span> Share Results</h2>
-                            <div style="display: flex; gap: 1rem;">
-                                <button class="btn btn-secondary" style="flex: 1;" onclick="shareLink()">
-                                    <span>📋</span> Copy Link
-                                </button>
-                                <button class="btn btn-secondary" style="flex: 1;" onclick="generateQR()">
-                                    <span>📱</span> QR Code
+                                <div class="chart-container">
+                                    <div class="chart-title">Spending Overview</div>
+                                    <div class="chart-bars" id="chartBars">
+                                        <div class="empty-state">
+                                            <div class="empty-icon">📊</div>
+                                            <div class="empty-text">Add expenses to see chart</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn" style="width: 100%;" id="calculateBtn">
+                                    <span>🔢</span> Calculate Split
                                 </button>
                             </div>
-                        </div>
 
-                        <div class="card">
-                            <h2 class="card-title"><span>📜</span> Payment History</h2>
-                            <div id="paymentHistory">
-                                <div class="empty-state">
-                                    <div class="empty-icon">💳</div>
-                                    <div class="empty-text">No payments recorded yet</div>
+                            <div class="card hidden" id="settlementsCard">
+                                <h2 class="card-title"><span>💸</span> Who Owes Whom</h2>
+                                <div class="settlement-list" id="settlementsList"></div>
+                            </div>
+
+                            <div class="card hidden" id="shareCard">
+                                <h2 class="card-title"><span>🔗</span> Share Results</h2>
+                                <div style="display: flex; gap: 1rem;">
+                                    <button class="btn btn-secondary" style="flex: 1;" id="shareLinkBtn">
+                                        <span>📋</span> Copy Link
+                                    </button>
+                                    <button class="btn btn-secondary" style="flex: 1;" id="shareQRBtn">
+                                        <span>📱</span> QR Code
+                                    </button>
                                 </div>
                             </div>
-                            <button class="btn btn-secondary hidden" style="width: 100%; margin-top: 1rem;" onclick="clearHistory()" id="clearHistoryBtn">
-                                <span>🗑️</span> Clear History
-                            </button>
+
+                            <div class="card">
+                                <h2 class="card-title"><span>📜</span> Payment History</h2>
+                                <div id="paymentHistory">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">💳</div>
+                                        <div class="empty-text">No payments recorded yet</div>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary hidden" style="width: 100%; margin-top: 1rem;" id="clearHistoryBtn">
+                                    <span>🗑️</span> Clear History
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <div id="checklistView" class="hidden">
-                <div class="card" style="margin-top: 2rem;">
-                    <h2 class="card-title"><span>✓</span> Payment Checklist</h2>
-                    <div id="checklistContainer">
-                        <div class="empty-state">
-                            <div class="empty-icon">📝</div>
-                            <div class="empty-text">No items in checklist yet. Add from settlements!</div>
+                <div id="checklistView" class="hidden">
+                    <div class="card" style="margin-top: 2rem;">
+                        <h2 class="card-title"><span>✓</span> Payment Checklist</h2>
+                        <div id="checklistContainer">
+                            <div class="empty-state">
+                                <div class="empty-icon">📝</div>
+                                <div class="empty-text">No items in checklist yet. Add from settlements!</div>
+                            </div>
                         </div>
+                        <button class="btn btn-secondary hidden" style="width: 100%; margin-top: 1rem;" id="clearChecklistBtn">
+                            <span>🗑️</span> Clear Checklist
+                        </button>
                     </div>
-                    <button class="btn btn-secondary hidden" style="width: 100%; margin-top: 1rem;" onclick="clearChecklist()" id="clearChecklistBtn">
-                        <span>🗑️</span> Clear Checklist
-                    </button>
+                </div>
+
+                <div class="footer">
+                    By Anvi Karanjkar
                 </div>
             </div>
-
-            <div class="footer">
-                ~By Anvi Karanjkar~
+            
+            <div class="ad-space">
+                <div class="ad-placeholder">Ad Space</div>
+                160x600
             </div>
         </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script>
-        let currentUser = '';
-        let currentGroup = 'default';
-        let currentCurrency = 'USD';
-        let groups = {};
-        let editingExpenseId = null;
-        let checklist = [];
-        let currentView = 'expenses';
-
-        const currencyRates = {
-            USD: 1, EUR: 0.92, GBP: 0.79, AUD: 1.52, CAD: 1.36, JPY: 149.5,
-            INR: 83.12, CNY: 7.24, CHF: 0.88, MXN: 17.25, BRL: 4.97, SGD: 1.34
+        // APP STATE
+        const appState = {
+            currentUser: '',
+            currentGroup: '',
+            currentCurrency: 'USD',
+            groups: {},
+            checklist: [],
+            currentView: 'expenses',
+            hasCompletedOnboarding: false,
+            editingExpenseId: null
         };
 
         const currencySymbols = {
@@ -787,28 +889,26 @@
             INR: '₹', CNY: '¥', CHF: 'Fr', MXN: 'Mex$', BRL: 'R$', SGD: 'S$'
         };
 
-        function init() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const sharedData = urlParams.get('data');
-            if (sharedData) {
-                loadSharedData(sharedData);
-                return;
-            }
-            loadFromStorage();
-            if (currentUser) {
-                document.getElementById('welcomeModal').classList.add('hidden');
-                document.getElementById('app').classList.remove('hidden');
-                document.getElementById('displayUserName').textContent = currentUser;
-                renderAll();
-            }
+        // UTILITY FUNCTIONS
+        function showToast(icon, message) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.innerHTML = `<span>${icon}</span><span>${escapeHtml(message)}</span>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        function escapeHtml(text) {
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
         }
 
         function saveToStorage() {
-            const data = JSON.stringify({
-                currentUser, currentGroup, currentCurrency, groups, checklist
-            });
             try {
-                localStorage.setItem('splitlyData', data);
+                localStorage.setItem('splitlyData', JSON.stringify(appState));
             } catch (e) {
                 console.error('Storage error:', e);
             }
@@ -819,141 +919,278 @@
                 const stored = localStorage.getItem('splitlyData');
                 if (stored) {
                     const data = JSON.parse(stored);
-                    currentUser = data.currentUser || '';
-                    currentGroup = data.currentGroup || 'default';
-                    currentCurrency = data.currentCurrency || 'USD';
-                    groups = data.groups || {};
-                    checklist = data.checklist || [];
-                    if (!groups.default) initializeDefaultGroup();
-                } else {
-                    initializeDefaultGroup();
+                    Object.assign(appState, data);
                 }
             } catch (e) {
-                initializeDefaultGroup();
+                console.error('Load error:', e);
             }
-        }
-
-        function initializeDefaultGroup() {
-            groups = {
-                default: {
-                    name: 'Default Group',
-                    people: currentUser ? [currentUser] : [],
-                    expenses: [],
-                    paymentHistory: []
-                }
-            };
-        }
-
-        function saveUserName() {
-            const name = document.getElementById('userName').value.trim();
-            if (!name) {
-                showToast('⚠️', 'Please enter your name');
-                return;
-            }
-            currentUser = name;
-            initializeDefaultGroup();
-            groups.default.people.push(name);
-            saveToStorage();
-            document.getElementById('welcomeModal').classList.add('hidden');
-            document.getElementById('app').classList.remove('hidden');
-            document.getElementById('displayUserName').textContent = name;
-            renderAll();
-        }
-
-        function showTab(tab) {
-            currentView = tab;
-            document.getElementById('expensesTab').classList.toggle('active', tab === 'expenses');
-            document.getElementById('checklistTab').classList.toggle('active', tab === 'checklist');
-            document.getElementById('expensesView').classList.toggle('hidden', tab !== 'expenses');
-            document.getElementById('checklistView').classList.toggle('hidden', tab !== 'checklist');
-            
-            if (tab === 'checklist') {
-                renderChecklist();
-            }
-        }
-
-        function showGroupModal() {
-            document.getElementById('groupModal').classList.remove('hidden');
-            document.getElementById('groupName').focus();
-        }
-
-        function createGroup() {
-            const name = document.getElementById('groupName').value.trim();
-            if (!name) {
-                showToast('⚠️', 'Please enter a group name');
-                return;
-            }
-            const groupId = 'group_' + Date.now();
-            const currentGroupData = getCurrentGroup();
-            groups[groupId] = {
-                name: name,
-                people: [...currentGroupData.people],
-                expenses: [],
-                paymentHistory: []
-            };
-            currentGroup = groupId;
-            saveToStorage();
-            renderGroupSelector();
-            document.getElementById('groupModal').classList.add('hidden');
-            document.getElementById('groupName').value = '';
-            resetSummary();
-            renderAll();
-            showToast('✅', 'Group "' + name + '" created');
-        }
-
-        function switchGroup() {
-            currentGroup = document.getElementById('groupSelect').value;
-            saveToStorage();
-            resetSummary();
-            renderAll();
-            const groupName = getCurrentGroup().name;
-            showToast('✅', 'Switched to ' + groupName);
-        }
-
-        function resetSummary() {
-            document.getElementById('totalSpent').textContent = formatCurrency(0);
-            document.getElementById('perPerson').textContent = formatCurrency(0);
-            document.getElementById('settlementsCard').classList.add('hidden');
-            document.getElementById('shareCard').classList.add('hidden');
         }
 
         function getCurrentGroup() {
-            return groups[currentGroup] || groups.default;
-        }
-
-        function renderGroupSelector() {
-            const select = document.getElementById('groupSelect');
-            select.innerHTML = Object.entries(groups).map(([id, group]) => 
-                '<option value="' + id + '"' + (id === currentGroup ? ' selected' : '') + '>' + escapeHtml(group.name) + '</option>'
-            ).join('');
-        }
-
-        function changeCurrency() {
-            currentCurrency = document.getElementById('currencySelect').value;
-            saveToStorage();
-            renderAll();
-            showToast('✅', 'Currency changed to ' + currentCurrency);
+            return appState.groups[appState.currentGroup] || null;
         }
 
         function formatCurrency(amount) {
-            const symbol = currencySymbols[currentCurrency];
-            if (currentCurrency === 'JPY') {
+            const symbol = currencySymbols[appState.currentCurrency];
+            if (appState.currentCurrency === 'JPY') {
                 return symbol + Math.round(amount).toLocaleString();
             }
             return symbol + amount.toFixed(2);
         }
 
+        // ONBOARDING
+        function nextOnboardingStep() {
+            const name = document.getElementById('userName').value.trim();
+            if (!name) {
+                showToast('⚠️', 'Please enter your name');
+                return;
+            }
+            
+            appState.currentUser = name;
+            document.getElementById('onboardingStep1').classList.add('hidden');
+            document.getElementById('onboardingStep2').classList.remove('hidden');
+            document.getElementById('onboardingTitle').textContent = "What's the occasion?";
+            document.getElementById('onboardingSubtitle').textContent = 'Give your expense group a name';
+            document.getElementById('tripName').focus();
+        }
+
+        function completeOnboarding() {
+            const tripName = document.getElementById('tripName').value.trim();
+            if (!tripName) {
+                showToast('⚠️', 'Please enter a name for your group');
+                return;
+            }
+            
+            const groupId = 'group_' + Date.now();
+            appState.groups[groupId] = {
+                name: tripName,
+                people: [appState.currentUser],
+                expenses: [],
+                paymentHistory: []
+            };
+            appState.currentGroup = groupId;
+            appState.hasCompletedOnboarding = true;
+            saveToStorage();
+            
+            document.getElementById('welcomeModal').classList.add('hidden');
+            document.getElementById('app').classList.remove('hidden');
+            document.getElementById('displayUserName').textContent = appState.currentUser;
+            renderAll();
+            showToast('🎉', 'Welcome! Now add participants');
+        }
+
+        // RENDER FUNCTIONS
+        function renderAll() {
+            renderGroupSelector();
+            renderPeople();
+            renderWhoPaidDropdown();
+            renderExpenses();
+            renderPaymentHistory();
+            renderChart();
+            updateSummary();
+        }
+
+        function renderGroupSelector() {
+            const select = document.getElementById('groupSelect');
+            select.innerHTML = Object.entries(appState.groups).map(([id, group]) => 
+                `<option value="${id}" ${id === appState.currentGroup ? 'selected' : ''}>${escapeHtml(group.name)}</option>`
+            ).join('');
+        }
+
+        function renderPeople() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const list = document.getElementById('peopleList');
+            if (group.people.length === 0) {
+                list.innerHTML = '';
+                return;
+            }
+            
+            list.innerHTML = group.people.map(person => 
+                `<div class="person-chip">
+                    <span>${escapeHtml(person)}</span>
+                    ${person !== appState.currentUser ? `<button class="remove-person" data-person="${escapeHtml(person)}">×</button>` : ''}
+                </div>`
+            ).join('');
+            
+            list.querySelectorAll('.remove-person').forEach(btn => {
+                btn.addEventListener('click', () => removePerson(btn.dataset.person));
+            });
+        }
+
+        function renderWhoPaidDropdown() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const select = document.getElementById('whoPaid');
+            if (group.people.length === 0) {
+                select.innerHTML = '<option value="">No participants yet</option>';
+                return;
+            }
+            
+            select.innerHTML = group.people.map(person => 
+                `<option value="${escapeHtml(person)}" ${person === appState.currentUser ? 'selected' : ''}>${escapeHtml(person)}</option>`
+            ).join('');
+        }
+
+        function renderExpenses() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const list = document.getElementById('expensesList');
+            if (group.expenses.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">No expenses added yet</div></div>';
+                return;
+            }
+            
+            list.innerHTML = group.expenses.map(expense => 
+                `<div class="expense-card">
+                    <div class="expense-header">
+                        <div>
+                            <div class="expense-desc">${escapeHtml(expense.description)}</div>
+                            <div class="expense-meta">Paid by ${escapeHtml(expense.payer)}</div>
+                        </div>
+                        <div class="expense-amount">${formatCurrency(expense.amount)}</div>
+                    </div>
+                    <div class="expense-actions">
+                        <button class="icon-btn" data-action="edit" data-id="${expense.id}">✏️ Edit</button>
+                        <button class="icon-btn" data-action="delete" data-id="${expense.id}">🗑️ Delete</button>
+                    </div>
+                </div>`
+            ).join('');
+            
+            list.querySelectorAll('.icon-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = parseInt(btn.dataset.id);
+                    if (btn.dataset.action === 'edit') editExpense(id);
+                    else if (btn.dataset.action === 'delete') deleteExpense(id);
+                });
+            });
+        }
+
+        function renderPaymentHistory() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const container = document.getElementById('paymentHistory');
+            const clearBtn = document.getElementById('clearHistoryBtn');
+            
+            if (group.paymentHistory.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-text">No payments recorded yet</div></div>';
+                clearBtn.classList.add('hidden');
+                return;
+            }
+            
+            const sorted = [...group.paymentHistory].sort((a, b) => b.timestamp - a.timestamp);
+            container.innerHTML = sorted.map(payment => {
+                const date = new Date(payment.date);
+                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                return `<div class="settlement-item" style="margin-bottom: 0.75rem;">
+                    <span style="font-size: 0.75rem; color: #6c757d; min-width: 140px;">${dateStr}</span>
+                    <span class="settlement-from">${escapeHtml(payment.from)}</span>
+                    <span class="settlement-arrow">→</span>
+                    <span class="settlement-to">${escapeHtml(payment.to)}</span>
+                    <span class="settlement-amount">${formatCurrency(payment.amount)}</span>
+                </div>`;
+            }).join('');
+            clearBtn.classList.remove('hidden');
+        }
+
+        function renderChart() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const chartBars = document.getElementById('chartBars');
+            if (group.expenses.length === 0) {
+                chartBars.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Add expenses to see chart</div></div>';
+                return;
+            }
+            
+            const paidAmounts = {};
+            group.people.forEach(p => paidAmounts[p] = 0);
+            group.expenses.forEach(expense => {
+                paidAmounts[expense.payer] = (paidAmounts[expense.payer] || 0) + expense.amount;
+            });
+            
+            const maxAmount = Math.max(...Object.values(paidAmounts));
+            chartBars.innerHTML = Object.entries(paidAmounts)
+                .sort((a, b) => b[1] - a[1])
+                .map(([person, amount]) => {
+                    const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
+                    return `<div class="chart-bar">
+                        <div class="chart-label">${escapeHtml(person)}</div>
+                        <div class="chart-bar-bg">
+                            <div class="chart-bar-fill" style="width: ${percentage}%">
+                                <span class="chart-value">${formatCurrency(amount)}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+        }
+
+        function updateSummary() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const totalSpent = group.expenses.reduce((sum, e) => sum + e.amount, 0);
+            document.getElementById('totalSpent').textContent = formatCurrency(totalSpent);
+            
+            const perPerson = group.people.length > 0 ? totalSpent / group.people.length : 0;
+            document.getElementById('perPerson').textContent = formatCurrency(perPerson);
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklistContainer');
+            const clearBtn = document.getElementById('clearChecklistBtn');
+            
+            if (appState.checklist.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">No items in checklist yet. Add from settlements!</div></div>';
+                clearBtn.classList.add('hidden');
+                return;
+            }
+            
+            const sorted = [...appState.checklist].sort((a, b) => a.completed - b.completed || b.timestamp - a.timestamp);
+            container.innerHTML = sorted.map(item => {
+                const symbol = currencySymbols[item.currency];
+                const amountStr = item.currency === 'JPY' ? symbol + Math.round(item.amount).toLocaleString() : symbol + item.amount.toFixed(2);
+                return `<div class="checklist-item${item.completed ? ' completed' : ''}">
+                    <input type="checkbox" class="checklist-checkbox" ${item.completed ? 'checked' : ''} data-id="${item.id}">
+                    <div class="checklist-content">
+                        <div class="checklist-desc">${escapeHtml(item.from)} → ${escapeHtml(item.to)}: ${amountStr}</div>
+                        <div class="checklist-meta">Group: ${escapeHtml(item.group)}</div>
+                    </div>
+                    <button class="icon-btn" data-action="remove-checklist" data-id="${item.id}">🗑️</button>
+                </div>`;
+            }).join('');
+            
+            container.querySelectorAll('.checklist-checkbox').forEach(cb => {
+                cb.addEventListener('change', () => toggleChecklistItem(parseInt(cb.dataset.id)));
+            });
+            
+            container.querySelectorAll('[data-action="remove-checklist"]').forEach(btn => {
+                btn.addEventListener('click', () => removeFromChecklist(parseInt(btn.dataset.id)));
+            });
+            
+            clearBtn.classList.remove('hidden');
+        }
+
+        // ACTION FUNCTIONS
         function addPerson() {
             const name = document.getElementById('personName').value.trim();
             if (!name) {
                 showToast('⚠️', 'Please enter a name');
                 return;
             }
+            
             const group = getCurrentGroup();
+            if (!group) return;
+            
             if (group.people.includes(name)) {
                 showToast('⚠️', 'Person already added');
                 return;
             }
+            
             group.people.push(name);
             document.getElementById('personName').value = '';
             saveToStorage();
@@ -963,11 +1200,14 @@
 
         function removePerson(name) {
             const group = getCurrentGroup();
+            if (!group) return;
+            
             const hasExpenses = group.expenses.some(e => e.payer === name);
             if (hasExpenses) {
                 showToast('⚠️', 'Cannot remove - person has expenses');
                 return;
             }
+            
             group.people = group.people.filter(p => p !== name);
             saveToStorage();
             renderAll();
@@ -978,6 +1218,7 @@
             const desc = document.getElementById('expenseDesc').value.trim();
             const amount = parseFloat(document.getElementById('expenseAmount').value);
             const payer = document.getElementById('whoPaid').value;
+            
             if (!desc) {
                 showToast('⚠️', 'Please enter a description');
                 return;
@@ -990,50 +1231,57 @@
                 showToast('⚠️', 'Please select who paid');
                 return;
             }
+            
             const group = getCurrentGroup();
+            if (!group) return;
+            
             const expense = {
-                id: editingExpenseId || Date.now(),
+                id: appState.editingExpenseId || Date.now(),
                 description: desc,
                 amount: amount,
                 payer: payer,
-                currency: currentCurrency,
+                currency: appState.currentCurrency,
                 timestamp: Date.now()
             };
-            if (editingExpenseId) {
-                const index = group.expenses.findIndex(e => e.id === editingExpenseId);
+            
+            if (appState.editingExpenseId) {
+                const index = group.expenses.findIndex(e => e.id === appState.editingExpenseId);
                 group.expenses[index] = expense;
-                editingExpenseId = null;
+                appState.editingExpenseId = null;
                 showToast('✅', 'Expense updated');
                 document.getElementById('expenseSubmitBtn').innerHTML = '<span>➕</span> Add Expense';
             } else {
                 group.expenses.push(expense);
                 showToast('✅', 'Expense added');
             }
+            
             document.getElementById('expenseDesc').value = '';
             document.getElementById('expenseAmount').value = '';
-            document.getElementById('whoPaid').value = currentUser;
             saveToStorage();
             renderAll();
         }
 
         function editExpense(id) {
             const group = getCurrentGroup();
+            if (!group) return;
+            
             const expense = group.expenses.find(e => e.id === id);
             if (!expense) return;
-            editingExpenseId = id;
+            
+            appState.editingExpenseId = id;
             document.getElementById('expenseDesc').value = expense.description;
             document.getElementById('expenseAmount').value = expense.amount;
             document.getElementById('whoPaid').value = expense.payer;
             document.getElementById('expenseSubmitBtn').innerHTML = '<span>✏️</span> Update Expense';
-            document.querySelector('.participants-expense-column').scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
-            });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function deleteExpense(id) {
             if (!confirm('Delete this expense?')) return;
+            
             const group = getCurrentGroup();
+            if (!group) return;
+            
             group.expenses = group.expenses.filter(e => e.id !== id);
             saveToStorage();
             renderAll();
@@ -1042,6 +1290,8 @@
 
         function calculateSplit() {
             const group = getCurrentGroup();
+            if (!group) return;
+            
             if (group.people.length === 0) {
                 showToast('⚠️', 'Add people first');
                 return;
@@ -1050,10 +1300,10 @@
                 showToast('⚠️', 'Add expenses first');
                 return;
             }
-            const totalSpent = group.expenses.reduce((sum, e) => sum + e.amount, 0);
-            document.getElementById('totalSpent').textContent = formatCurrency(totalSpent);
+            
             const balances = {};
             group.people.forEach(p => balances[p] = 0);
+            
             group.expenses.forEach(expense => {
                 const perPerson = expense.amount / group.people.length;
                 balances[expense.payer] += expense.amount;
@@ -1061,16 +1311,17 @@
                     balances[person] -= perPerson;
                 });
             });
+            
             group.paymentHistory.forEach(payment => {
                 if (balances.hasOwnProperty(payment.from) && balances.hasOwnProperty(payment.to)) {
                     balances[payment.from] += payment.amount;
                     balances[payment.to] -= payment.amount;
                 }
             });
-            const avgPerPerson = totalSpent / group.people.length;
-            document.getElementById('perPerson').textContent = formatCurrency(avgPerPerson);
+            
             const settlements = calculateSettlements(balances);
             displaySettlements(settlements);
+            updateSummary();
             renderChart();
             document.getElementById('shareCard').classList.remove('hidden');
             showToast('✅', 'Split calculated successfully');
@@ -1079,6 +1330,7 @@
         function calculateSettlements(balances) {
             const creditors = [];
             const debtors = [];
+            
             for (const [person, balance] of Object.entries(balances)) {
                 if (balance > 0.01) {
                     creditors.push({ person, amount: balance });
@@ -1086,61 +1338,85 @@
                     debtors.push({ person, amount: -balance });
                 }
             }
+            
             creditors.sort((a, b) => b.amount - a.amount);
             debtors.sort((a, b) => b.amount - a.amount);
+            
             const settlements = [];
             let i = 0, j = 0;
+            
             while (i < debtors.length && j < creditors.length) {
                 const debtor = debtors[i];
                 const creditor = creditors[j];
                 const amount = Math.min(debtor.amount, creditor.amount);
+                
                 settlements.push({
                     from: debtor.person,
                     to: creditor.person,
                     amount: amount
                 });
+                
                 debtor.amount -= amount;
                 creditor.amount -= amount;
+                
                 if (debtor.amount < 0.01) i++;
                 if (creditor.amount < 0.01) j++;
             }
+            
             return settlements;
         }
 
         function displaySettlements(settlements) {
             const list = document.getElementById('settlementsList');
             const card = document.getElementById('settlementsCard');
+            
             if (settlements.length === 0) {
                 list.innerHTML = '<div class="empty-state"><div class="empty-icon">✅</div><div class="empty-text">Everyone is settled up!</div></div>';
             } else {
-                list.innerHTML = settlements.map(s => 
-                    '<div class="settlement-item">' +
-                    '<span class="settlement-from">' + escapeHtml(s.from) + '</span>' +
-                    '<span class="settlement-arrow">→</span>' +
-                    '<span class="settlement-to">' + escapeHtml(s.to) + '</span>' +
-                    '<span class="settlement-amount">' + formatCurrency(s.amount) + '</span>' +
-                    '<button class="icon-btn" onclick="addToChecklist(\'' + escapeHtml(s.from) + '\', \'' + escapeHtml(s.to) + '\', ' + s.amount + ')">➕ Checklist</button>' +
-                    '<button class="icon-btn" onclick="markAsPaid(\'' + escapeHtml(s.from) + '\', \'' + escapeHtml(s.to) + '\', ' + s.amount + ')">✓ Paid</button>' +
-                    '</div>'
+                list.innerHTML = settlements.map((s, idx) => 
+                    `<div class="settlement-item">
+                        <span class="settlement-from">${escapeHtml(s.from)}</span>
+                        <span class="settlement-arrow">→</span>
+                        <span class="settlement-to">${escapeHtml(s.to)}</span>
+                        <span class="settlement-amount">${formatCurrency(s.amount)}</span>
+                        <button class="icon-btn" data-action="add-checklist" data-idx="${idx}">➕ Checklist</button>
+                        <button class="icon-btn" data-action="mark-paid" data-idx="${idx}">✓ Paid</button>
+                    </div>`
                 ).join('');
+                
+                list.querySelectorAll('[data-action="add-checklist"]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const s = settlements[parseInt(btn.dataset.idx)];
+                        addToChecklist(s.from, s.to, s.amount);
+                    });
+                });
+                
+                list.querySelectorAll('[data-action="mark-paid"]').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const s = settlements[parseInt(btn.dataset.idx)];
+                        markAsPaid(s.from, s.to, s.amount);
+                    });
+                });
             }
             card.classList.remove('hidden');
         }
 
         function addToChecklist(from, to, amount) {
-            const existingItem = checklist.find(item => 
+            const existingItem = appState.checklist.find(item => 
                 item.from === from && item.to === to && !item.completed
             );
+            
             if (existingItem) {
                 showToast('⚠️', 'Already in checklist');
                 return;
             }
-            checklist.push({
+            
+            appState.checklist.push({
                 id: Date.now(),
                 from: from,
                 to: to,
                 amount: amount,
-                currency: currentCurrency,
+                currency: appState.currentCurrency,
                 group: getCurrentGroup().name,
                 completed: false,
                 timestamp: Date.now()
@@ -1149,39 +1425,38 @@
             showToast('✅', 'Added to checklist');
         }
 
-        function renderChecklist() {
-            const container = document.getElementById('checklistContainer');
-            const clearBtn = document.getElementById('clearChecklistBtn');
-            if (checklist.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">No items in checklist yet. Add from settlements!</div></div>';
-                clearBtn.classList.add('hidden');
-                return;
+        function markAsPaid(from, to, amount) {
+            if (!confirm(`Mark payment of ${formatCurrency(amount)} from ${from} to ${to} as paid?`)) return;
+            
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            group.paymentHistory.push({
+                from: from,
+                to: to,
+                amount: amount,
+                date: new Date().toISOString(),
+                timestamp: Date.now()
+            });
+            
+            const checklistIndex = appState.checklist.findIndex(item => 
+                item.from === from && item.to === to && !item.completed
+            );
+            if (checklistIndex !== -1) {
+                appState.checklist.splice(checklistIndex, 1);
             }
-            const sorted = [...checklist].sort((a, b) => a.completed - b.completed || b.timestamp - a.timestamp);
-            container.innerHTML = sorted.map(item => 
-                '<div class="checklist-item' + (item.completed ? ' completed' : '') + '">' +
-                '<input type="checkbox" class="checklist-checkbox" ' + (item.completed ? 'checked' : '') + ' onchange="toggleChecklistItem(' + item.id + ')">' +
-                '<div class="checklist-content">' +
-                '<div class="checklist-desc">' + escapeHtml(item.from) + ' → ' + escapeHtml(item.to) + ': ' + formatCurrencyForItem(item.amount, item.currency) + '</div>' +
-                '<div class="checklist-meta">Group: ' + escapeHtml(item.group) + '</div>' +
-                '</div>' +
-                '<button class="icon-btn" onclick="removeFromChecklist(' + item.id + ')">🗑️</button>' +
-                '</div>'
-            ).join('');
-            clearBtn.classList.remove('hidden');
-        }
-
-        function formatCurrencyForItem(amount, currency) {
-            const symbol = currencySymbols[currency];
-            const converted = amount * currencyRates[currency];
-            if (currency === 'JPY') {
-                return symbol + Math.round(converted).toLocaleString();
+            
+            saveToStorage();
+            showToast('✅', 'Payment marked as paid');
+            calculateSplit();
+            renderPaymentHistory();
+            if (appState.currentView === 'checklist') {
+                renderChecklist();
             }
-            return symbol + converted.toFixed(2);
         }
 
         function toggleChecklistItem(id) {
-            const item = checklist.find(i => i.id === id);
+            const item = appState.checklist.find(i => i.id === id);
             if (item) {
                 item.completed = !item.completed;
                 saveToStorage();
@@ -1191,7 +1466,7 @@
 
         function removeFromChecklist(id) {
             if (!confirm('Remove this item from checklist?')) return;
-            checklist = checklist.filter(item => item.id !== id);
+            appState.checklist = appState.checklist.filter(item => item.id !== id);
             saveToStorage();
             renderChecklist();
             showToast('✅', 'Removed from checklist');
@@ -1199,81 +1474,17 @@
 
         function clearChecklist() {
             if (!confirm('Clear entire checklist? This cannot be undone.')) return;
-            checklist = [];
+            appState.checklist = [];
             saveToStorage();
             renderChecklist();
             showToast('✅', 'Checklist cleared');
         }
 
-        function renderChart() {
-            const group = getCurrentGroup();
-            const chartBars = document.getElementById('chartBars');
-            if (group.expenses.length === 0) {
-                chartBars.innerHTML = '<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">Add expenses to see chart</div></div>';
-                return;
-            }
-            const paidAmounts = {};
-            group.people.forEach(p => paidAmounts[p] = 0);
-            group.expenses.forEach(expense => {
-                paidAmounts[expense.payer] += expense.amount;
-            });
-            const maxAmount = Math.max(...Object.values(paidAmounts));
-            chartBars.innerHTML = Object.entries(paidAmounts)
-                .sort((a, b) => b[1] - a[1])
-                .map(([person, amount]) => {
-                    const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-                    return '<div class="chart-bar">' +
-                        '<div class="chart-label">' + escapeHtml(person) + '</div>' +
-                        '<div class="chart-bar-bg">' +
-                        '<div class="chart-bar-fill" style="width: ' + percentage + '%">' +
-                        '<span class="chart-value">' + formatCurrency(amount) + '</span>' +
-                        '</div></div></div>';
-                }).join('');
-        }
-
-        function markAsPaid(from, to, amount) {
-            if (!confirm('Mark payment of ' + formatCurrency(amount) + ' from ' + from + ' to ' + to + ' as paid?')) return;
-            const group = getCurrentGroup();
-            group.paymentHistory.push({
-                from: from,
-                to: to,
-                amount: amount,
-                date: new Date().toISOString(),
-                timestamp: Date.now()
-            });
-            saveToStorage();
-            showToast('✅', 'Payment marked as paid');
-            calculateSplit();
-            renderPaymentHistory();
-        }
-
-        function renderPaymentHistory() {
-            const group = getCurrentGroup();
-            const container = document.getElementById('paymentHistory');
-            const clearBtn = document.getElementById('clearHistoryBtn');
-            if (group.paymentHistory.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="empty-icon">💳</div><div class="empty-text">No payments recorded yet</div></div>';
-                clearBtn.classList.add('hidden');
-                return;
-            }
-            const sorted = [...group.paymentHistory].sort((a, b) => b.timestamp - a.timestamp);
-            container.innerHTML = sorted.map(payment => {
-                const date = new Date(payment.date);
-                const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                return '<div class="settlement-item" style="margin-bottom: 0.75rem;">' +
-                    '<span style="font-size: 0.75rem; color: #6c757d; min-width: 140px;">' + dateStr + '</span>' +
-                    '<span class="settlement-from">' + escapeHtml(payment.from) + '</span>' +
-                    '<span class="settlement-arrow">→</span>' +
-                    '<span class="settlement-to">' + escapeHtml(payment.to) + '</span>' +
-                    '<span class="settlement-amount">' + formatCurrency(payment.amount) + '</span>' +
-                    '</div>';
-            }).join('');
-            clearBtn.classList.remove('hidden');
-        }
-
         function clearHistory() {
             if (!confirm('Clear all payment history? This cannot be undone.')) return;
             const group = getCurrentGroup();
+            if (!group) return;
+            
             group.paymentHistory = [];
             saveToStorage();
             renderPaymentHistory();
@@ -1283,29 +1494,78 @@
             }
         }
 
+        function createNewGroup() {
+            const groupName = document.getElementById('groupName').value.trim();
+            if (!groupName) {
+                showToast('⚠️', 'Please enter a group name');
+                return;
+            }
+            
+            const groupId = 'group_' + Date.now();
+            appState.groups[groupId] = {
+                name: groupName,
+                people: [appState.currentUser],
+                expenses: [],
+                paymentHistory: []
+            };
+            appState.currentGroup = groupId;
+            saveToStorage();
+            
+            document.getElementById('groupModal').classList.add('hidden');
+            document.getElementById('groupName').value = '';
+            renderAll();
+            showToast('✅', 'Group created: ' + groupName);
+        }
+
+        function deleteCurrentGroup() {
+            const group = getCurrentGroup();
+            if (!group) return;
+            
+            const groupCount = Object.keys(appState.groups).length;
+            if (groupCount === 1) {
+                showToast('⚠️', 'Cannot delete the last group');
+                return;
+            }
+            
+            if (!confirm(`Delete group "${group.name}"? This cannot be undone.`)) return;
+            
+            delete appState.groups[appState.currentGroup];
+            appState.currentGroup = Object.keys(appState.groups)[0];
+            saveToStorage();
+            renderAll();
+            showToast('✅', 'Group deleted');
+        }
+
         function shareLink() {
-            const data = { currentUser, currentGroup, currentCurrency, groups };
+            const data = {
+                currentUser: appState.currentUser,
+                currentGroup: appState.currentGroup,
+                currentCurrency: appState.currentCurrency,
+                groups: appState.groups
+            };
             const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
             const url = window.location.origin + window.location.pathname + '?data=' + encoded;
+            
             navigator.clipboard.writeText(url).then(() => {
                 showToast('✅', 'Link copied to clipboard');
             }).catch(() => {
-                const input = document.createElement('input');
-                input.value = url;
-                document.body.appendChild(input);
-                input.select();
-                document.execCommand('copy');
-                document.body.removeChild(input);
-                showToast('✅', 'Link copied to clipboard');
+                prompt('Copy this link:', url);
             });
         }
 
         function generateQR() {
-            const data = { currentUser, currentGroup, currentCurrency, groups };
+            const data = {
+                currentUser: appState.currentUser,
+                currentGroup: appState.currentGroup,
+                currentCurrency: appState.currentCurrency,
+                groups: appState.groups
+            };
             const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
             const url = window.location.origin + window.location.pathname + '?data=' + encoded;
+            
             const qrContainer = document.getElementById('qrCode');
             qrContainer.innerHTML = '';
+            
             try {
                 new QRCode(qrContainer, {
                     text: url,
@@ -1321,108 +1581,112 @@
             }
         }
 
-        function closeQRModal() {
-            document.getElementById('qrModal').classList.add('hidden');
-        }
-
-        function loadSharedData(encodedData) {
-            try {
-                const decoded = JSON.parse(decodeURIComponent(atob(encodedData)));
-                currentUser = decoded.currentUser;
-                currentGroup = decoded.currentGroup;
-                currentCurrency = decoded.currentCurrency || 'USD';
-                groups = decoded.groups;
+        // INITIALIZATION
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFromStorage();
+            
+            // Check if returning user
+            if (appState.currentUser && appState.hasCompletedOnboarding && appState.currentGroup) {
                 document.getElementById('welcomeModal').classList.add('hidden');
                 document.getElementById('app').classList.remove('hidden');
-                document.getElementById('displayUserName').textContent = currentUser;
-                document.getElementById('currencySelect').value = currentCurrency;
-                renderGroupSelector();
+                document.getElementById('displayUserName').textContent = appState.currentUser;
                 renderAll();
-                if (getCurrentGroup().expenses.length > 0) {
-                    calculateSplit();
+            }
+            
+            // ONBOARDING EVENTS
+            document.getElementById('nameNextBtn').addEventListener('click', nextOnboardingStep);
+            document.getElementById('userName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    nextOnboardingStep();
                 }
-                showToast('✅', 'Shared data loaded');
-            } catch (e) {
-                showToast('⚠️', 'Invalid share link');
-            }
-        }
-
-        function renderAll() {
-            renderGroupSelector();
-            renderPeople();
-            renderWhoPaidDropdown();
-            renderExpenses();
-            renderPaymentHistory();
-            renderChart();
-        }
-
-        function renderPeople() {
-            const group = getCurrentGroup();
-            const list = document.getElementById('peopleList');
-            if (group.people.length === 0) {
-                list.innerHTML = '';
-                return;
-            }
-            list.innerHTML = group.people.map(person => 
-                '<div class="person-chip">' +
-                '<span>' + escapeHtml(person) + '</span>' +
-                (person !== currentUser ? '<button class="remove-person" onclick="removePerson(\'' + escapeHtml(person) + '\')">×</button>' : '') +
-                '</div>'
-            ).join('');
-        }
-
-        function renderWhoPaidDropdown() {
-            const group = getCurrentGroup();
-            const select = document.getElementById('whoPaid');
-            if (group.people.length === 0) {
-                select.innerHTML = '<option value="">No participants yet</option>';
-                return;
-            }
-            select.innerHTML = group.people.map(person => 
-                '<option value="' + escapeHtml(person) + '"' + (person === currentUser ? ' selected' : '') + '>' + escapeHtml(person) + '</option>'
-            ).join('');
-        }
-
-        function renderExpenses() {
-            const group = getCurrentGroup();
-            const list = document.getElementById('expensesList');
-            if (group.expenses.length === 0) {
-                list.innerHTML = '<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">No expenses added yet</div></div>';
-                return;
-            }
-            list.innerHTML = group.expenses.map(expense => 
-                '<div class="expense-card">' +
-                '<div class="expense-header">' +
-                '<div>' +
-                '<div class="expense-desc">' + escapeHtml(expense.description) + '</div>' +
-                '<div class="expense-meta">Paid by ' + escapeHtml(expense.payer) + '</div>' +
-                '</div>' +
-                '<div class="expense-amount">' + formatCurrency(expense.amount) + '</div>' +
-                '</div>' +
-                '<div class="expense-actions">' +
-                '<button class="icon-btn" onclick="editExpense(' + expense.id + ')">✏️ Edit</button>' +
-                '<button class="icon-btn" onclick="deleteExpense(' + expense.id + ')">🗑️ Delete</button>' +
-                '</div>' +
-                '</div>'
-            ).join('');
-        }
-
-        function escapeHtml(text) {
-            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-            return String(text).replace(/[&<>"']/g, m => map[m]);
-        }
-
-        function showToast(icon, message) {
-            const existing = document.querySelector('.toast');
-            if (existing) existing.remove();
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            toast.innerHTML = '<span>' + icon + '</span><span>' + escapeHtml(message) + '</span>';
-            document.body.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
-        }
-
-        window.addEventListener('DOMContentLoaded', init);
+            });
+            
+            document.getElementById('tripStartBtn').addEventListener('click', completeOnboarding);
+            document.getElementById('tripName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    completeOnboarding();
+                }
+            });
+            
+            // MAIN APP EVENTS
+            document.getElementById('addPersonBtn').addEventListener('click', addPerson);
+            document.getElementById('personName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addPerson();
+            });
+            
+            document.getElementById('expenseSubmitBtn').addEventListener('click', addExpense);
+            document.getElementById('calculateBtn').addEventListener('click', calculateSplit);
+            
+            document.getElementById('groupSelect').addEventListener('change', (e) => {
+                appState.currentGroup = e.target.value;
+                saveToStorage();
+                renderAll();
+                showToast('✅', 'Switched to ' + getCurrentGroup().name);
+            });
+            
+            document.getElementById('currencySelect').addEventListener('change', (e) => {
+                appState.currentCurrency = e.target.value;
+                saveToStorage();
+                renderAll();
+                showToast('✅', 'Currency changed to ' + appState.currentCurrency);
+            });
+            
+            // TAB NAVIGATION
+            document.getElementById('expensesTab').addEventListener('click', () => {
+                appState.currentView = 'expenses';
+                document.getElementById('expensesTab').classList.add('active');
+                document.getElementById('checklistTab').classList.remove('active');
+                document.getElementById('expensesView').classList.remove('hidden');
+                document.getElementById('checklistView').classList.add('hidden');
+            });
+            
+            document.getElementById('checklistTab').addEventListener('click', () => {
+                appState.currentView = 'checklist';
+                document.getElementById('checklistTab').classList.add('active');
+                document.getElementById('expensesTab').classList.remove('active');
+                document.getElementById('checklistView').classList.remove('hidden');
+                document.getElementById('expensesView').classList.add('hidden');
+                renderChecklist();
+            });
+            
+            // GROUP MANAGEMENT
+            document.getElementById('newGroupBtn').addEventListener('click', () => {
+                document.getElementById('groupModal').classList.remove('hidden');
+                document.getElementById('groupName').focus();
+            });
+            
+            document.getElementById('deleteGroupBtn').addEventListener('click', deleteCurrentGroup);
+            
+            document.getElementById('closeGroup').addEventListener('click', () => {
+                document.getElementById('groupModal').classList.add('hidden');
+            });
+            
+            document.getElementById('createGroupBtn').addEventListener('click', createNewGroup);
+            document.getElementById('groupName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    createNewGroup();
+                }
+            });
+            
+            // SHARING
+            document.getElementById('shareLinkBtn').addEventListener('click', shareLink);
+            document.getElementById('shareQRBtn').addEventListener('click', generateQR);
+            
+            document.getElementById('closeQR').addEventListener('click', () => {
+                document.getElementById('qrModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeQRBtn').addEventListener('click', () => {
+                document.getElementById('qrModal').classList.add('hidden');
+            });
+            
+            // HISTORY & CHECKLIST
+            document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+            document.getElementById('clearChecklistBtn').addEventListener('click', clearChecklist);
+        });
     </script>
 </body>
 </html>
